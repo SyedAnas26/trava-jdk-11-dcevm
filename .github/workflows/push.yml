@@ -2,7 +2,7 @@ name: Build ARM64 JDK for macOS
 
 on:
   push
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,6 +18,7 @@ jobs:
         run: |
           git clone https://github.com/tpoechtrager/osxcross.git
           cd osxcross
+          wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz -P tarballs/
           sudo ./tools/get_dependencies.sh
           SDK_VERSION=11.3 sudo ./build.sh
           sudo cp -r target/SDK/MacOSX11.3.sdk /opt/aarch64-sysroot
