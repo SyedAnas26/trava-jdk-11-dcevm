@@ -1,39 +1,49 @@
-name: "build-dcevm manually"
+name: Build JDK11 for ARM64 macOS M1
+
 on:
   workflow_dispatch:
-    inputs:
-      dcevm_branch:
-        description: 'dcevm branch'
-        required: true
-        default: 'dcevm11-jdk-11.0.15-adoptium'
-      dcevm_tag:
-        description: 'dcevm tag'
-        required: true
-        default: 'dcevm-11.0.15+1'
 
 jobs:
-  dcevm:
-    runs-on: macos-11
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - uses: TravaOpenJDK/action-build-dcevm@v1
-      id: buildJDK
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
       with:
-        impl: dcevm
-        javaToBuild: jdk11u
-        dcevm_branch: ${{ github.event.inputs.dcevm_branch }}
-        dcevm_tag: ${{ github.event.inputs.dcevm_tag }}
-    - run: ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
-    - name: Commit build artifacts
+        distribution: 'adopt'
+        java-version: '11'
+        architecture: 'x64'
+
+    - name: Install dependencies
       run: |
-        mkdir -p build-artifacts
-        cp -R ${{ github.workspace }}/temurin-build-dcevm/workspace/artifacts/* build-artifacts/
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add build-artifacts/*
-        git commit -m "Add build artifacts for ${{ github.event.inputs.dcevm_tag }}"
-    - name: Push changes
-      uses: ad-m/github-push-action@v0.6.0
+        sudo apt-get update
+        sudo apt-get install -y build-essential zip unzip autoconf ccache
+
+    - name: Set up cross-compilation toolchain
+      run: |
+        wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+        tar -xzf openjdk-11+28_linux-x64_bin.tar.gz
+        export PATH=$PWD/jdk-11/bin:$PATH
+        export JAVA_HOME=$PWD/jdk-11
+        wget https://download.java.net/openjdk/jdk11u/linux/aarch64/toolchain/gcc-9.2.0-aarch64.tar.gz
+        tar -xzf gcc-9.2.0-aarch64.tar.gz
+        export PATH=$PWD/gcc-9.2.0-aarch64/bin:$PATH
+        export LD_LIBRARY_PATH=$PWD/gcc-9.2.0-aarch64/lib:$LD_LIBRARY_PATH
+
+    - name: Cross-compile OpenJDK for ARM64 macOS M1
+      run: |
+        git clone https://github.com/HotswapProjects/openjdk-jdk11u-dcevm.git
+        cd openjdk-jdk11u-dcevm
+        git checkout dcevm11-jdk-11.0.12-adoptium
+        bash configure --openjdk-target=macosx-arm64
+        make images
+
+    - name: Upload built JDK
+      uses: actions/upload-artifact@v2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
+        name: jdk11-macos-arm64
+        path: build/*/images/jdk
