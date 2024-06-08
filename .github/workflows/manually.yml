@@ -1,49 +1,39 @@
-name: Build JDK11 for ARM64 macOS M1
+name: Build ARM64 JDK for macOS
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout the current repository
+        uses: actions/checkout@v2
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'adopt'
-        java-version: '11'
-        architecture: 'x64'
+      - name: Clone the repository with the build instructions
+        run: git clone https://github.com/HotswapProjects/openjdk-jdk11u-dcevm.git
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential zip unzip autoconf ccache
+      - name: Install required packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf libtool build-essential ccache zip unzip libasound2-dev libfreetype6-dev libcups2-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
+          sudo apt-get install -y g++-aarch64-linux-gnu sysroot
 
-    - name: Set up cross-compilation toolchain
-      run: |
-        wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
-        tar -xzf openjdk-11+28_linux-x64_bin.tar.gz
-        export PATH=$PWD/jdk-11/bin:$PATH
-        export JAVA_HOME=$PWD/jdk-11
-        wget https://download.java.net/openjdk/jdk11u/linux/aarch64/toolchain/gcc-9.2.0-aarch64.tar.gz
-        tar -xzf gcc-9.2.0-aarch64.tar.gz
-        export PATH=$PWD/gcc-9.2.0-aarch64/bin:$PATH
-        export LD_LIBRARY_PATH=$PWD/gcc-9.2.0-aarch64/lib:$LD_LIBRARY_PATH
+      - name: Set up cross-compilation environment
+        run: |
+          sudo apt-get install -y g++-aarch64-linux-gnu
+          sudo apt-get install -y sysroot
 
-    - name: Cross-compile OpenJDK for ARM64 macOS M1
-      run: |
-        git clone https://github.com/HotswapProjects/openjdk-jdk11u-dcevm.git
-        cd openjdk-jdk11u-dcevm
-        git checkout dcevm11-jdk-11.0.12-adoptium
-        bash configure --openjdk-target=macosx-arm64
-        make images
+      - name: Configure and Build JDK
+        working-directory: openjdk-jdk11u-dcevm
+        run: |
+          bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/usr/bin/aarch64-linux-gnu
+          make images
 
-    - name: Upload built JDK
-      uses: actions/upload-artifact@v2
-      with:
-        name: jdk11-macos-arm64
-        path: build/*/images/jdk
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-jdk
+          path: openjdk-jdk11u-dcevm/build/macosx-aarch64-normal-server-release/images/jdk
