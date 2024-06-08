@@ -19,6 +19,13 @@ jobs:
           wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
           mkdir -p /opt/aarch64-sysroot
           tar -xJf MacOSX11.3.sdk.tar.xz -C /opt/aarch64-sysroot --strip-components=1
+      - name: Install mig tool
+        run: |
+          git clone https://git.savannah.gnu.org/git/hurd/mig.git
+          cd mig
+          ./configure
+          make
+          sudo make install
       - name: Configure and Build JDK
         run: |
           cd openjdk-jdk11u-dcevm
