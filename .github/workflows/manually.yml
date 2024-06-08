@@ -14,39 +14,26 @@ on:
 jobs:
   dcevm:
     runs-on: macos-11
-    strategy:
-      fail-fast: false
-      matrix:
-        javaToBuild: [jdk11u]
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.inputs.dcevm_branch }}
-    - name: Set up environment for arm64
-      run: |
-        softwareupdate --install-rosetta --agree-to-license
-        arch -arm64 /bin/bash -c "brew install openjdk@11"
-        arch -arm64 /bin/bash -c "brew link --force --overwrite openjdk@11"
-    - name: Set JAVA_HOME for arm64
-      run: echo "JAVA_HOME=$(brew --prefix openjdk@11)" >> $GITHUB_ENV
     - uses: TravaOpenJDK/action-build-dcevm@v1
       id: buildJDK
       with:
         impl: dcevm
-        javaToBuild: ${{ matrix.javaToBuild }}
+        javaToBuild: jdk11u
         dcevm_branch: ${{ github.event.inputs.dcevm_branch }}
         dcevm_tag: ${{ github.event.inputs.dcevm_tag }}
-        configure_args: '--openjdk-target=arm64'
-    - run: arch -arm64 ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
-    - name: Commit built artifact to the repository
+    - run: ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
+    - name: Commit build artifacts
       run: |
+        mkdir -p build-artifacts
+        cp -R ${{ github.workspace }}/temurin-build-dcevm/workspace/artifacts/* build-artifacts/
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git checkout -b artifact-branch
-        mkdir -p artifacts
-        cp ${{ github.workspace }}/temurin-build-dcevm/workspace/build/src/build/macosx-arm64-normal-server-release/*.tar.gz artifacts/
-        git add artifacts/*.tar.gz
-        git commit -m 'Add built artifact'
-        git push origin artifact-branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git add build-artifacts/*
+        git commit -m "Add build artifacts for ${{ github.event.inputs.dcevm_tag }}"
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
