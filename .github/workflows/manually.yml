@@ -1,4 +1,4 @@
-name: "build-dcevm manually "
+name: "build-dcevm manually"
 on:
   workflow_dispatch:
     inputs:
@@ -13,30 +13,40 @@ on:
 
 jobs:
   dcevm:
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-11
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11]
         javaToBuild: [jdk11u]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.inputs.dcevm_branch }}
+    - name: Set up environment for arm64
+      run: |
+        softwareupdate --install-rosetta --agree-to-license
+        arch -arm64 /bin/bash -c "brew install openjdk@11"
+        arch -arm64 /bin/bash -c "brew link --force --overwrite openjdk@11"
+    - name: Set JAVA_HOME for arm64
+      run: echo "JAVA_HOME=$(brew --prefix openjdk@11)" >> $GITHUB_ENV
     - uses: TravaOpenJDK/action-build-dcevm@v1
       id: buildJDK
       with:
         impl: dcevm
-        javaToBuild: ${{ matrix.javaToBuild}}
+        javaToBuild: ${{ matrix.javaToBuild }}
         dcevm_branch: ${{ github.event.inputs.dcevm_branch }}
         dcevm_tag: ${{ github.event.inputs.dcevm_tag }}
-    - run: ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
-    - uses: actions/upload-artifact@v2
-      with:
-        name: '${{ steps.buildJDK.outputs.JdkPackageFileName }}'
-        path: ${{ github.workspace }}/temurin-build-dcevm/workspace/artifacts/${{ steps.buildJDK.outputs.JdkPackageFileName }}
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: ${{ github.workspace }}/temurin-build-dcevm/workspace/artifacts/${{ steps.buildJDK.outputs.JdkPackageFileName }}
+        configure_args: '--openjdk-target=arm64'
+    - run: arch -arm64 ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
+    - name: Commit built artifact to the repository
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git checkout -b artifact-branch
+        mkdir -p artifacts
+        cp ${{ github.workspace }}/temurin-build-dcevm/workspace/build/src/build/macosx-arm64-normal-server-release/*.tar.gz artifacts/
+        git add artifacts/*.tar.gz
+        git commit -m 'Add built artifact'
+        git push origin artifact-branch
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
