@@ -1,9 +1,16 @@
 name: Build ARM64 JDK for macOS
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      dcevm_branch:
+        description: 'dcevm branch'
+        required: true
+        default: 'dcevm11-jdk-11.0.15-adoptium'
+      dcevm_tag:
+        description: 'dcevm tag'
+        required: true
+        default: 'dcevm-11.0.15+1'
 
 jobs:
   build:
