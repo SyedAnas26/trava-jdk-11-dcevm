@@ -23,7 +23,7 @@ jobs:
       - name: Configure and Build JDK
         run: |
           cd openjdk-jdk11u-dcevm
-          bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/usr/bin/aarch64-linux-gnu --with-dsymutil=/usr/bin/llvm-dsymutil
+          bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/usr/bin/aarch64-linux-gnu
           make images
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
