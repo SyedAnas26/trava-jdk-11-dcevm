@@ -23,7 +23,6 @@ jobs:
         javaToBuild: jdk11u
         dcevm_branch: ${{ github.event.inputs.dcevm_branch }}
         dcevm_tag: ${{ github.event.inputs.dcevm_tag }}
-        arch: arm64  # Specify the architecture as arm64
     - run: ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
     - name: Commit build artifacts
       run: |
