@@ -19,13 +19,6 @@ jobs:
           wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
           mkdir -p /opt/aarch64-sysroot
           tar -xJf MacOSX11.3.sdk.tar.xz -C /opt/aarch64-sysroot --strip-components=1
-      - name: Install mig tool
-        run: |
-          sudo apt-get install -y bison flex
-          git clone https://github.com/apple-oss-distributions/xnu.git
-          cd xnu
-          make
-          sudo cp ./obj/mig /usr/local/bin/mig
       - name: Configure and Build JDK
         run: |
           cd openjdk-jdk11u-dcevm
