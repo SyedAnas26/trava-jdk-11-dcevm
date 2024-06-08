@@ -1,3 +1,4 @@
+
 name: Build ARM64 JDK for macOS
 
 on:
@@ -16,30 +17,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the current repository
-        uses: actions/checkout@v2
-
-      - name: Clone the repository with the build instructions
-        run: git clone https://github.com/HotswapProjects/openjdk-jdk11u-dcevm.git
-
+      - uses: actions/checkout@v2
+      - name: Clone the repository
+        run: |
+          git clone https://github.com/HotswapProjects/openjdk-jdk11u-dcevm.git
+          cd openjdk-jdk11u-dcevm
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf libtool build-essential ccache zip unzip libasound2-dev libfreetype6-dev libcups2-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
-          sudo apt-get install -y g++-aarch64-linux-gnu sysroot
-
-      - name: Set up cross-compilation environment
+          sudo apt-get install -y autoconf libtool build-essential ccache zip unzip libasound2-dev libfreetype6-dev libcups2-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev g++-aarch64-linux-gnu
+      - name: Set up sysroot
         run: |
-          sudo apt-get install -y g++-aarch64-linux-gnu
-
+          wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
+          mkdir -p /opt/aarch64-sysroot
+          tar -xJf MacOSX11.3.sdk.tar.xz -C /opt/aarch64-sysroot --strip-components=1
       - name: Configure and Build JDK
-        working-directory: openjdk-jdk11u-dcevm
         run: |
+          cd openjdk-jdk11u-dcevm
           bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/usr/bin/aarch64-linux-gnu
           make images
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: built-jdk
           path: openjdk-jdk11u-dcevm/build/macosx-aarch64-normal-server-release/images/jdk
+
