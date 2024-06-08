@@ -1,9 +1,7 @@
 name: Build ARM64 JDK for macOS
 
 on:
-  push:
-    branches:
-      - main
+  push
 
 jobs:
   build:
