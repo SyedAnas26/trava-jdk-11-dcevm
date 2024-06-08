@@ -18,15 +18,15 @@ jobs:
         run: |
           git clone https://github.com/tpoechtrager/osxcross.git
           cd osxcross
-          ./tools/get_dependencies.sh
-          SDK_VERSION=11.3 ./build.sh
-          cp -r target/SDK/MacOSX11.3.sdk /opt/aarch64-sysroot
+          sudo ./tools/get_dependencies.sh
+          SDK_VERSION=11.3 sudo ./build.sh
+          sudo cp -r target/SDK/MacOSX11.3.sdk /opt/aarch64-sysroot
       - name: Configure and Build JDK
         env:
-          PATH: /usr/lib/llvm-10/bin:$PATH:/usr/local/bin:/path/to/osxcross/target/bin
+          PATH: /usr/lib/llvm-10/bin:$PATH:/usr/local/bin:/home/runner/work/osxcross/target/bin
         run: |
           cd openjdk-jdk11u-dcevm
-          bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/path/to/osxcross/target/bin
+          bash configure --openjdk-target=aarch64-apple-darwin --with-sysroot=/opt/aarch64-sysroot --with-toolchain-path=/home/runner/work/osxcross/target/bin
           make images
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
