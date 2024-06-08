@@ -31,7 +31,6 @@ jobs:
       - name: Set up cross-compilation environment
         run: |
           sudo apt-get install -y g++-aarch64-linux-gnu
-          sudo apt-get install -y sysroot
 
       - name: Configure and Build JDK
         working-directory: openjdk-jdk11u-dcevm
