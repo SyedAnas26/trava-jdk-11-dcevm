@@ -17,11 +17,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-10.15]
+        os: [macos-11]
         javaToBuild: [jdk11u]
     steps:
     - uses: actions/checkout@v1
-    - uses: TravaOpenJDK/action-build-dcevm@v1
+    - uses: SyedAnas26/action-build-dcevm@v1
       id: buildJDK
       with:
         impl: dcevm
