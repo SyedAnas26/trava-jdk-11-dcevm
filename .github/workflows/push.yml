@@ -8,9 +8,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [macos-13-xlarge]
         javaToBuild: [jdk11u]
     steps:
+    - run: uname -m
     - uses: actions/checkout@v1
     - uses: TravaOpenJDK/action-build-dcevm@v1
       id: buildJDK
