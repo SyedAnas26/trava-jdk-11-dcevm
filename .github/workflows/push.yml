@@ -12,6 +12,7 @@ jobs:
         javaToBuild: [jdk11u]
     steps:
     - run: uname -m
+    - run: clang --version
     - uses: actions/checkout@v1
     - uses: SyedAnas26/action-build-dcevm@v2
       id: buildJDK
