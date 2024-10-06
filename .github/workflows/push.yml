@@ -20,7 +20,7 @@ jobs:
         dcevm_branch: 'dcevm11-jdk-11.0.15-adoptium'
         dcevm_tag: 'dcevm-11.0.15+1'
     - run: ${{ steps.buildJDK.outputs.BuildJDKDir }}/bin/java -version
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: '${{ steps.buildJDK.outputs.JdkPackageFileName }}'
         path: ${{ github.workspace }}/temurin-build-dcevm/workspace/artifacts/${{ steps.buildJDK.outputs.JdkPackageFileName }}
