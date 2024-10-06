@@ -13,7 +13,7 @@ jobs:
     steps:
     - run: uname -m
     - uses: actions/checkout@v1
-    - uses: TravaOpenJDK/action-build-dcevm@v1
+    - uses: SyedAnas26/action-build-dcevm@v2
       id: buildJDK
       with:
         impl: dcevm
